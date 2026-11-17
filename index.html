@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1c1848">
+  <title>TapReview — Smart NFC & QR System</title>
+  <link rel="preconnect" href="https://fkwelspxbicybrlhugrq.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://fkwelspxbicybrlhugrq.supabase.co">
+  <style>
+    :root{--ink:#1d1b32;--mute:#6f6c82;--indigo:#1c1848;--indigo2:#3a33a0;--gold:#c9a24d;--gold2:#e9d29a;--cream:#faf5ea;--card:#ffffff;--line:#ece4d2;--soft:#f1eefc}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;background:#f8fafc;color:var(--ink)}
+    .hidden{display:none!important}
+    
+    /* ROYAL CUSTOMER REVIEW PAGE STYLES */
+    .cust-body{background:var(--cream);min-height:100vh;padding-bottom:30px}
+    .hero{background:radial-gradient(120% 90% at 85% 0%,#4a42c4 0%,transparent 55%),linear-gradient(160deg,#1c1848 0%,#2b2478 100%);color:#fff;padding:30px 20px 85px;text-align:center;position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+    .brand{font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold2);font-weight:700}
+    .hero h1{font-family:Georgia,"Times New Roman",serif;font-size:27px;line-height:1.2;margin:12px 0 8px;font-weight:700}
+    .stars{color:var(--gold);letter-spacing:.35em;font-size:18px;margin:6px 0 10px}
+    .hero p{margin:0 auto;max-width:330px;font-size:13.5px;line-height:1.55;color:#d9d6f5}
+    .tags{margin-top:12px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
+    .wrap{max-width:480px;margin:-58px auto 40px;padding:0 14px;position:relative}
+    .rcard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;box-shadow:0 12px 30px -14px rgba(28,24,72,.28)}
+    .rlabel{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin-bottom:10px}
+    .rlabel i{font-style:normal;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--indigo);font-size:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+    .rlabel small{color:var(--mute);font-weight:400;font-size:12px}
+    .rrow{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{border:1px solid var(--line);background:#fffdf8;border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ink);transition:.12s;cursor:pointer}
+    .chip.on{background:linear-gradient(135deg,var(--indigo),var(--indigo2));border-color:transparent;color:#fff}
+    .sug{display:block;width:100%;text-align:left;border:1px solid var(--line);border-left:3px solid var(--gold);background:#fffdf8;border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;line-height:1.45;color:var(--ink);cursor:pointer}
+    .sug:active{background:var(--soft);transform:scale(.99)}
+    .ghost{background:none;border:0;color:var(--indigo2);font-size:13.5px;font-weight:600;padding:4px 2px;cursor:pointer}
+    .rtextarea{width:100%;min-height:105px;border:1px solid var(--line);border-radius:14px;padding:12px;font:inherit;font-size:14.5px;line-height:1.45;resize:vertical;background:#fffdf8;color:var(--ink);outline:none}
+    .rtextarea:focus{border-color:var(--indigo2)}
+    .go{width:100%;border:0;border-radius:16px;padding:16px;margin-top:10px;font-size:16px;font-weight:700;color:var(--indigo);background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 55%,var(--gold) 100%);box-shadow:0 10px 20px -10px rgba(201,162,77,.9);cursor:pointer}
+    .go:active{transform:scale(.98)}
+    .rnote{font-size:12px;color:var(--mute);line-height:1.5;margin:10px 0 0}
+    .foot{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#a29a82;margin-top:6px}
+    .loader-box{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#faf5ea;text-align:center}
+    .loader{border:3px solid #e2e8f0;border-top:3px solid #1c1848;border-radius:50%;width:32px;height:32px;animation:spin .6s linear infinite;margin-bottom:10px}
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+  <!-- 1. INSTANT LOADER -->
+  <div id="loading-view" class="hidden loader-box">
+    <div class="loader"></div>
+    <p style="font-size:13px;font-weight:600;color:#1c1848;margin:0">Opening...</p>
+  </div>
+
+  <!-- 2. ULTRA-FAST CUSTOMER REVIEW PAGE -->
+  <div id="customer-view" class="hidden cust-body">
+    <div class="hero">
+      <div class="brand" id="brand">LOADING...</div>
+      <h1>How was your experience?</h1>
+      <div class="stars">★★★★★</div>
+      <p>Your words help others choose with confidence. Tap an idea below or write your own.</p>
+      <div class="tags" id="hero-tags">Quality &nbsp;·&nbsp; Service &nbsp;·&nbsp; Trust</div>
+    </div>
+
+    <div class="wrap">
+      <div class="rcard">
+        <div class="rlabel"><i>1</i>What did you like? <small>pick any</small></div>
+        <div class="rrow" id="topics"></div>
+      </div>
+      <div class="rcard">
+        <div class="rlabel"><i>2</i>Tap an idea or write your own</div>
+        <div id="sugs"></div>
+        <button class="ghost" id="shuffle">↻ Show different ideas</button>
+      </div>
+      <div class="rcard">
+        <div class="rlabel"><i>3</i>Your review <small>edit freely</small></div>
+        <textarea class="rtextarea" id="txt" placeholder="Tap any idea above or write in your own words"></textarea>
+        <button class="go" id="go">Copy &amp; review on Google</button>
+        <p class="rnote">Review copies automatically. Choose stars, paste, and tap Post.</p>
+      </div>
+      <div class="foot" id="foot">TAPREVIEW</div>
+    </div>
+  </div>
+
+  <!-- 3. ADMIN LOGIN SCREEN -->
+  <div id="login-view" class="hidden min-h-screen flex items-center justify-center p-4 bg-slate-900">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 sm:p-8">
+      <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-[#1c1848] text-[#e9d29a] font-extrabold text-lg mx-auto mb-4">NFC</div>
+      <h1 class="text-2xl font-extrabold text-center text-slate-900">Admin Login</h1>
+      <p class="text-xs text-center text-slate-500 mt-1 mb-6">Enter password to manage Dynamic QR & NFC cards</p>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+          <input type="password" id="admin-password" required placeholder="••••••••••"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-600 outline-none text-sm" />
+        </div>
+        <p id="login-error" class="hidden text-xs text-red-600 font-medium">Wrong password! Try again.</p>
+        <button type="submit" class="w-full bg-[#1c1848] hover:bg-[#2b2478] text-white font-bold py-3 rounded-xl transition">Unlock Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. ADMIN DASHBOARD -->
+  <div id="admin-view" class="hidden min-h-screen pb-20 bg-slate-50">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-[#1c1848] text-[#e9d29a] flex items-center justify-center font-extrabold text-xs shadow">NFC</div>
+          <div>
+            <h1 class="font-extrabold text-slate-900 text-base leading-tight">TapReview Admin</h1>
+            <p class="text-[11px] text-emerald-600 font-semibold">⚡ Turbo Mode Active</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openBulkModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg transition">+ Add Cards</button>
+          <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-600 font-semibold px-2 py-2">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 pt-6">
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase">Total Cards</p>
+          <p id="stat-total" class="text-2xl font-extrabold text-slate-900 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase">Active Shops</p>
+          <p id="stat-active" class="text-2xl font-extrabold text-emerald-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase">Total Scans/Taps</p>
+          <p id="stat-taps" class="text-2xl font-extrabold text-indigo-700 mt-1">0</p>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <input type="text" id="search-input" oninput="renderCards()" placeholder="Search by Card ID (e.g. 1, 2) or Shop Name..."
+          class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-600 outline-none" />
+      </div>
+
+      <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </main>
+  </div>
+
+  <!-- MODAL: Add Pre-Stock Cards -->
+  <div id="bulk-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <h3 class="text-lg font-extrabold text-slate-900">Create Pre-Stock Cards</h3>
+      <p class="text-xs text-slate-500 mt-1 mb-4">Create blank Dynamic QR & NFC slots before printing.</p>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Start Number</label>
+          <input type="number" id="bulk-start" value="1" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">End Number</label>
+          <input type="number" id="bulk-end" value="10" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeBulkModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+        <button onclick="createBulkCards()" id="bulk-btn" class="px-4 py-2 text-xs font-bold bg-[#1c1848] text-white rounded-xl">Create Cards</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Dynamic QR & NFC Link -->
+  <div id="qr-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+      <span id="qr-badge" class="inline-block bg-indigo-100 text-indigo-900 text-xs font-extrabold px-3 py-1 rounded-full mb-2">Card #1</span>
+      <h3 id="qr-shop-title" class="text-base font-bold text-slate-900 mb-4">Dynamic QR Code</h3>
+      <div id="qrcode-box" class="flex justify-center p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl mb-3"></div>
+      <p class="text-[11px] text-slate-500 mb-1">Write this exact URL into NFC Chip:</p>
+      <div class="flex items-center gap-1 bg-slate-100 p-2 rounded-lg mb-4">
+        <input id="qr-url-text" readonly class="bg-transparent text-xs font-mono text-slate-700 w-full outline-none" />
+        <button onclick="copyNfcUrl()" class="bg-white px-2.5 py-1 rounded text-xs font-bold text-indigo-700">Copy</button>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeQrModal()" class="flex-1 py-2.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded-xl">Close</button>
+        <button onclick="downloadQrImage()" class="flex-1 py-2.5 text-xs font-bold bg-[#1c1848] text-white rounded-xl">Download QR PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://fkwelspxbicybrlhugrq.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_FYkUWEtjcxR9VkU3r9ewFQ_-2I1X32C";
+    const ADMIN_PASS   = "Review#@4441";
+
+    const CATEGORY_DATA = {
+      fashion: {
+        tags: "Kurta  ·  Thobe  ·  Fashion",
+        topics: {
+          quality: { name: "Quality", g: ["Overall quality is excellent, you can see the care in every piece.", "Very good quality for the price. Exactly what I was looking for.", "Impressed with the quality. It looks and feels premium."] },
+          fabric: { name: "Fabric", g: ["The fabric is soft, breathable and feels great on the skin.", "Good choice of fabrics, material feels genuine and durable."] },
+          stitching: { name: "Stitching", g: ["Stitching is clean and strong, no loose threads anywhere.", "Very neat stitching and finishing. Clearly made by skilled hands."] },
+          fit: { name: "Fit & Design", g: ["The fit is spot on, exactly as per the size I ordered.", "Lovely designs and great variety to choose from."] },
+          price: { name: "Price", g: ["Prices are fair for the quality you get.", "Honest pricing and really good value for money."] },
+          service: { name: "Behaviour", g: ["Everyone was polite, patient and very helpful.", "Trustworthy people and a pleasure to deal with."] }
+        }
+      },
+      salon: {
+        tags: "Hair  ·  Skin  ·  Grooming",
+        topics: {
+          service: { name: "Haircut & Styling", g: ["Got an amazing haircut! The stylist understood exactly what I wanted.", "Best salon experience in town. Very professional and skilled staff."] },
+          hygiene: { name: "Hygiene", g: ["Super clean and hygienic salon. Fresh towels and sanitized tools.", "Loved the neat ambiance and cleanliness of the place."] },
+          staff: { name: "Staff Behaviour", g: ["Very polite and welcoming staff. They take their time and never rush.", "Great hospitality and expert advice for hair and skin care."] },
+          price: { name: "Value for Money", g: ["Reasonable rates for such premium salon service.", "Worth every rupee! Will definitely come back again."] }
+        }
+      },
+      food: {
+        tags: "Taste  ·  Freshness  ·  Service",
+        topics: {
+          taste: { name: "Food Taste", g: ["Delicious food! Authentic taste and served piping hot.", "Every dish we ordered was full of flavor and super fresh."] },
+          hygiene: { name: "Cleanliness", g: ["Very clean kitchen and dining area. Great family atmosphere.", "Hygienic preparation and neat packaging."] },
+          service: { name: "Fast Service", g: ["Quick service and very polite staff. Loved the hospitality!", "Great ambiance to hang out with friends and family."] },
+          price: { name: "Portion & Price", g: ["Generous portion sizes at very pocket-friendly prices.", "Best food spot in the area! Highly recommended."] }
+        }
+      },
+      clinic: {
+        tags: "Care  ·  Diagnosis  ·  Trust",
+        topics: {
+          doctor: { name: "Doctor's Care", g: ["Very polite and experienced doctor. Listened to my problem patiently.", "Explained the treatment clearly without prescribing unnecessary medicines."] },
+          clinic: { name: "Clean Clinic", g: ["Very clean, modern and well-maintained clinic.", "Smooth appointment process and minimal waiting time."] },
+          staff: { name: "Helpful Staff", g: ["Supportive staff and very caring environment.", "Got quick relief with the treatment. Highly recommended doctor!"] }
+        }
+      },
+      general: {
+        tags: "Quality  ·  Service  ·  Trust",
+        topics: {
+          quality: { name: "Product Quality", g: ["Top-notch product quality and genuine items.", "Very satisfied with my purchase. Everything works perfectly."] },
+          service: { name: "Customer Service", g: ["Very helpful and polite owner/staff. Guided me properly.", "Smooth and fast service. A pleasure to shop here."] },
+          price: { name: "Best Price", g: ["Very fair and competitive pricing compared to the market.", "Trustworthy shop with honest rates. Will visit again!"] }
+        }
+      }
+    };
+
+    // DIRECT REST FETCH (10x faster than loading full Supabase JS library)
+    async function sbFetch(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        ...options,
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    // INSTANT ROUTING
+    (async function boot() {
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+      const urlParams = new URLSearchParams(window.location.search);
+      const cardId = urlParams.get("id") || (path && path !== "admin" && path !== "index.html" ? path : null);
+
+      if (cardId) {
+        // Check local cache for zero-millisecond paint
+        const cacheKey = `tapreview_card_${cardId}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            renderCustomerUI(JSON.parse(cached));
+          } catch (e) {}
+        } else {
+          document.getElementById("loading-view").classList.remove("hidden");
+        }
+
+        try {
+          const rows = await sbFetch(`cards?id=eq.${encodeURIComponent(cardId)}&select=*`);
+          const data = rows && rows[0];
+          document.getElementById("loading-view").classList.add("hidden");
+
+          if (!data || !data.review_url) {
+            localStorage.removeItem(cacheKey);
+            document.getElementById("customer-view").classList.add("hidden");
+            alert(`Card #${cardId} is not active yet.`);
+            return;
+          }
+
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+          renderCustomerUI(data);
+
+          // Increment taps silently in background
+          sbFetch(`cards?id=eq.${encodeURIComponent(cardId)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ taps: (data.taps || 0) + 1 })
+          }).catch(() => {});
+        } catch (err) {
+          if (!cached) {
+            document.getElementById("loading-view").classList.add("hidden");
+            alert("Network slow, please refresh.");
+          }
+        }
+      } else {
+        // Load Tailwind & QRCode ONLY when Admin Panel opens
+        await loadAdminAssets();
+        if (localStorage.getItem("nfc_admin_auth") === ADMIN_PASS) {
+          showAdminDashboard();
+        } else {
+          document.getElementById("login-view").classList.remove("hidden");
+        }
+      }
+    })();
+
+    function renderCustomerUI(data) {
+      let REVIEW_URL = data.review_url.trim();
+      if (!REVIEW_URL.startsWith("http")) REVIEW_URL = "https://" + REVIEW_URL;
+      const BUSINESS_NAME = data.shop_name || "OUR STORE";
+      const catKey = data.category && CATEGORY_DATA[data.category] ? data.category : "general";
+      const catObj = CATEGORY_DATA[catKey];
+
+      document.getElementById("customer-view").classList.remove("hidden");
+      document.getElementById("brand").textContent = BUSINESS_NAME;
+      document.getElementById("foot").textContent = BUSINESS_NAME;
+      document.getElementById("hero-tags").textContent = catObj.tags;
+      document.title = BUSINESS_NAME + " - Review";
+
+      const TOPICS = catObj.topics;
+      let picked = {};
+
+      function getPool() {
+        let keys = Object.keys(picked).filter(k => picked[k]);
+        if (!keys.length) keys = Object.keys(TOPICS);
+        let out = [];
+        keys.forEach(k => TOPICS[k].g.forEach(x => out.push(x)));
+        return out.sort(() => Math.random() - 0.5);
+      }
+
+      function renderSugs() {
+        const sugsBox = document.getElementById("sugs");
+        sugsBox.innerHTML = "";
+        getPool().slice(0, 5).forEach(t => {
+          const b = document.createElement("button");
+          b.className = "sug";
+          b.textContent = t;
+          b.onclick = () => {
+            document.getElementById("txt").value = t;
+          };
+          sugsBox.appendChild(b);
+        });
+      }
+
+      function renderChips() {
+        const topicsBox = document.getElementById("topics");
+        topicsBox.innerHTML = "";
+        Object.keys(TOPICS).forEach(k => {
+          const b = document.createElement("button");
+          b.className = "chip" + (picked[k] ? " on" : "");
+          b.textContent = TOPICS[k].name;
+          b.onclick = () => { picked[k] = !picked[k]; renderChips(); renderSugs(); };
+          topicsBox.appendChild(b);
+        });
+      }
+
+      document.getElementById("shuffle").onclick = renderSugs;
+
+      // INSTANT COPY & IMMEDIATE REDIRECT (NO DELAY!)
+      document.getElementById("go").onclick = () => {
+        const goBtn = document.getElementById("go");
+        const text = document.getElementById("txt").value.trim();
+        goBtn.textContent = "Copied! Opening Google...";
+
+        if (text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(() => {});
+          }
+          try {
+            const ta = document.getElementById("txt");
+            ta.select();
+            ta.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+          } catch (e) {}
+        }
+
+        // Redirect immediately (120ms just so clipboard finishes cleanly)
+        setTimeout(() => {
+          window.location.replace(REVIEW_URL);
+        }, 120);
+      };
+
+      renderChips();
+      renderSugs();
+    }
+
+    // LAZY LOAD ADMIN SCRIPTS
+    function loadAdminAssets() {
+      return new Promise((resolve) => {
+        const s1 = document.createElement("script");
+        s1.src = "https://cdn.tailwindcss.com";
+        const s2 = document.createElement("script");
+        s2.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+        let loaded = 0;
+        const done = () => { if (++loaded === 2) resolve(); };
+        s1.onload = s1.onerror = done;
+        s2.onload = s2.onerror = done;
+        document.head.appendChild(s1);
+        document.head.appendChild(s2);
+      });
+    }
+
+    // ADMIN LOGIC
+    let allCards = [];
+    document.getElementById("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (document.getElementById("admin-password").value === ADMIN_PASS) {
+        localStorage.setItem("nfc_admin_auth", ADMIN_PASS);
+        document.getElementById("login-view").classList.add("hidden");
+        showAdminDashboard();
+      } else {
+        document.getElementById("login-error").classList.remove("hidden");
+      }
+    });
+
+    function logout() { localStorage.removeItem("nfc_admin_auth"); location.reload(); }
+
+    async function showAdminDashboard() {
+      document.getElementById("admin-view").classList.remove("hidden");
+      await fetchCards();
+    }
+
+    async function fetchCards() {
+      try {
+        const data = await sbFetch("cards?select=*");
+        allCards = (data || []).sort((a, b) => (parseInt(a.id) || 0) - (parseInt(b.id) || 0));
+        document.getElementById("stat-total").innerText = allCards.length;
+        document.getElementById("stat-active").innerText = allCards.filter(c => c.review_url).length;
+        document.getElementById("stat-taps").innerText = allCards.reduce((s, c) => s + (c.taps || 0), 0);
+        renderCards();
+      } catch (e) { alert("Error: " + e.message); }
+    }
+
+    function renderCards() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const box = document.getElementById("cards-container");
+      box.innerHTML = "";
+      const list = allCards.filter(c => c.id.includes(q) || (c.shop_name && c.shop_name.toLowerCase().includes(q)));
+
+      if (!list.length) {
+        box.innerHTML = `<div class="col-span-full bg-white p-8 rounded-2xl border text-center text-xs text-slate-500">Click "+ Add Cards" to create pre-stock cards.</div>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const active = c.review_url && c.review_url.trim() !== "";
+        const url = `${window.location.origin}/${c.id}`;
+        const cat = c.category || "general";
+        box.innerHTML += `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="bg-[#1c1848] text-[#e9d29a] text-xs font-extrabold px-2.5 py-1 rounded-lg">#${c.id}</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                    ${active ? 'Active' : 'Unassigned'}
+                  </span>
+                </div>
+                <span class="text-xs font-semibold text-slate-500">👆 ${c.taps || 0} scans</span>
+              </div>
+              <div class="space-y-2.5">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase">Shop / Business Name</label>
+                  <input type="text" id="shop-${c.id}" value="${c.shop_name || ''}" placeholder="e.g. AS-3 FASHION"
+                    class="w-full mt-0.5 px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase">Business Category</label>
+                  <select id="cat-${c.id}" class="w-full mt-0.5 px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                    <option value="general" ${cat==='general'?'selected':''}>General Shop / Store</option>
+                    <option value="fashion" ${cat==='fashion'?'selected':''}>Clothing / Kurta / Fashion</option>
+                    <option value="salon" ${cat==='salon'?'selected':''}>Salon / Spa / Beauty</option>
+                    <option value="food" ${cat==='food'?'selected':''}>Cafe / Restaurant / Bakery</option>
+                    <option value="clinic" ${cat==='clinic'?'selected':''}>Doctor / Dental / Clinic</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase">Google Review Link</label>
+                  <input type="url" id="url-${c.id}" value="${c.review_url || ''}" placeholder="https://g.page/r/..."
+                    class="w-full mt-0.5 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+              <button onclick="saveCard('${c.id}')" id="btn-${c.id}" class="flex-1 bg-[#1c1848] hover:bg-[#2b2478] text-white text-xs font-bold py-2.5 rounded-xl">Save</button>
+              <button onclick="openQrModal('${c.id}', '${(c.shop_name || '').replace(/'/g, "\\'")}')" class="px-3 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl">QR & Link</button>
+              <a href="${url}" target="_blank" class="px-3 py-2.5 bg-amber-100 text-amber-900 text-xs font-bold rounded-xl">Preview</a>
+            </div>
+          </div>`;
+      });
+    }
+
+    async function saveCard(id) {
+      const btn = document.getElementById(`btn-${id}`);
+      btn.innerText = "Saving...";
+      try {
+        await sbFetch(`cards?id=eq.${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            shop_name: document.getElementById(`shop-${id}`).value.trim(),
+            category: document.getElementById(`cat-${id}`).value,
+            review_url: document.getElementById(`url-${id}`).value.trim()
+          })
+        });
+        btn.innerText = "Saved ✓";
+        setTimeout(fetchCards, 700);
+      } catch (e) {
+        alert(e.message);
+        btn.innerText = "Save";
+      }
+    }
+
+    function openBulkModal() { document.getElementById("bulk-modal").classList.remove("hidden"); }
+    function closeBulkModal() { document.getElementById("bulk-modal").classList.add("hidden"); }
+
+    async function createBulkCards() {
+      const s = parseInt(document.getElementById("bulk-start").value);
+      const e = parseInt(document.getElementById("bulk-end").value);
+      const rows = [];
+      for (let i = s; i <= e; i++) rows.push({ id: String(i), shop_name: "", category: "general", review_url: "", taps: 0 });
+      await sbFetch("cards", {
+        method: "POST",
+        headers: { "Prefer": "resolution=ignore-duplicates" },
+        body: JSON.stringify(rows)
+      });
+      closeBulkModal();
+      fetchCards();
+    }
+
+    function openQrModal(id, name) {
+      const url = `${window.location.origin}/${id}`;
+      document.getElementById("qr-badge").innerText = `Card #${id}`;
+      document.getElementById("qr-shop-title").innerText = name || "Dynamic QR Code";
+      document.getElementById("qr-url-text").value = url;
+      const box = document.getElementById("qrcode-box");
+      box.innerHTML = "";
+      new QRCode(box, { text: url, width: 180, height: 180, colorDark: "#1c1848", colorLight: "#ffffff" });
+      document.getElementById("qr-modal").classList.remove("hidden");
+    }
+    function closeQrModal() { document.getElementById("qr-modal").classList.add("hidden"); }
+    function copyNfcUrl() {
+      const i = document.getElementById("qr-url-text");
+      i.select(); navigator.clipboard.writeText(i.value);
+      alert("Copied for NFC Tools: " + i.value);
+    }
+    function downloadQrImage() {
+      const c = document.querySelector("#qrcode-box canvas");
+      const a = document.createElement("a");
+      a.download = `${document.getElementById("qr-badge").innerText.replace("#","Card-")}-QR.png`;
+      a.href = c.toDataURL("image/png"); a.click();
+    }
+  </script>
+</body>
+</html>
